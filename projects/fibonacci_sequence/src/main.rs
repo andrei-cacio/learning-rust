@@ -11,10 +11,14 @@ fn fibo(n: i32) -> i32 {
 fn main() {
 	let args = env::args().collect::<Vec<String>>();
 	let app_name = &args[0];
-	if args.len() < 2 {
-		println!("usage {:?} [number]", app_name);
+	if args.len() != 2 {
+		println!("Error: Invalid number of arguments\nUsage: {:?} [number]", app_name);
+		std::process::exit(1);
 	} else {
-		let n = &args[1].parse::<i32>().unwrap();
-		println!("{}", fibo(*n));
+		let n = args[1].parse::<i32>().unwrap_or_else(|e| {
+			println!("Error parsing number '{}': {}", args[1], e);
+			std::process::exit(1);
+		});
+		println!("{}", fibo(n));
 	}
 }
