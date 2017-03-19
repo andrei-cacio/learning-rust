@@ -1,0 +1,6 @@
+[package]
+name = "fibonnacy_sequence"
+version = "0.1.0"
+authors = ["Andrei Cacio <andrei.cacio@yahoo.com>"]
+
+[dependencies]
