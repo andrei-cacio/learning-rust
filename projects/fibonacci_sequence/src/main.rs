@@ -14,8 +14,7 @@ fn main() {
 	if args.len() < 2 {
 		println!("usage {:?} [number]", app_name);
 	} else {
-		let n = &args[1];
-		let nn = n.parse::<i32>().unwrap();
-		println!("{}", fibo(nn));
+		let n = &args[1].parse::<i32>().unwrap();
+		println!("{}", fibo(*n));
 	}
 }
