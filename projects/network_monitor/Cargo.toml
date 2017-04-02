@@ -1,0 +1,8 @@
+[package]
+name = "network_monitor"
+version = "0.1.0"
+authors = ["Andrei Cacio <andrei.cacio@yahoo.com>"]
+
+[dependencies.pnet]
+version = "0.16.0"
+
