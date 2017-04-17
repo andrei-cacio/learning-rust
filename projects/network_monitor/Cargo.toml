@@ -6,3 +6,6 @@ authors = ["Andrei Cacio <andrei.cacio@yahoo.com>"]
 [dependencies.pnet]
 version = "0.16.0"
 
+[dependencies]
+timer = "0.1.6"
+chrono = "0.3"
