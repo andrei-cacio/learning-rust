@@ -11,6 +11,7 @@ use pnet::packet::{Packet, MutablePacket};
 use std::env;
 use std::usize;
 use std::thread;
+use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{Sender, Receiver};
 use std::sync::mpsc::channel;
 
@@ -27,8 +28,8 @@ fn main() {
         print_interfaces();
     } else {
         let (tx, rx) = channel();
-        thread::spawn(|| print_bandwith(rx));
-        thread::spawn(|| listen_for_packets(interface_name));
+        thread::spawn(|| handle_packet_count(rx));
+        thread::spawn(|| listen_for_packets(interface_name, tx));
         loop {};
     }
 }
@@ -73,14 +74,13 @@ fn create_datalink_channel(interface_name: String) -> (Box<EthernetDataLinkSende
     };
 }
 
-fn listen_for_packets(interface_name: String) {
+fn listen_for_packets(interface_name: String, tx_bandwidth: Sender<usize>) {
     let (mut tx, mut rx) = create_datalink_channel(interface_name);
     let mut iter = rx.iter();
-    let mut sent_packets = 0;
     loop {
         match iter.next() {
             Ok(packet) => {
-                sent_packets += packet.packet().len();
+                tx_bandwidth.send(packet.packet().len());
                 tx.build_and_send(1, packet.packet().len(),
                                   &mut |mut new_packet| {
                                       new_packet.clone_from(&packet);
@@ -91,5 +91,21 @@ fn listen_for_packets(interface_name: String) {
                 panic!("An error occurred while reading: {}", e);
             }
         }
+    }
+}
+
+fn handle_packet_count(rx: Receiver<usize>) {
+    let packets = Arc::new(Mutex::new(vec![]));
+    let timer = timer::Timer::new();
+    let cloned_packets = packets.clone();
+    let guard = timer.schedule_repeating(chrono::Duration::seconds(1), move || {
+        println!("{:?}", cloned_packets);
+    });
+
+    loop {
+        let nr = rx.recv().unwrap();
+        let packets = packets.clone();
+        let mut locked_packets = packets.lock().unwrap();
+        locked_packets.push(nr);
     }
 }
