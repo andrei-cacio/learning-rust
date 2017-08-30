@@ -8,6 +8,7 @@ use pnet::datalink::EthernetDataLinkSender;
 use pnet::datalink::EthernetDataLinkReceiver;
 use pnet::packet::{Packet, MutablePacket};
 
+use std::io::{self, Write};
 use std::env;
 use std::usize;
 use std::thread;
@@ -42,13 +43,6 @@ fn print_interfaces() {
 
     for iface in interface_names_iter {
         println!("{}", iface);
-    }
-}
-
-fn print_bandwith(rx: Receiver<usize>) {
-    loop {
-        let size = rx.recv().unwrap();
-        println!("{}", size);
     }
 }
 
@@ -99,7 +93,12 @@ fn handle_packet_count(rx: Receiver<usize>) {
     let timer = timer::Timer::new();
     let cloned_packets = packets.clone();
     let guard = timer.schedule_repeating(chrono::Duration::seconds(1), move || {
-        println!("{:?}", cloned_packets);
+        let mut packets = cloned_packets.lock().unwrap();
+        let packets_len_sum = packets.clone()
+            .into_iter()
+            .fold(0, |acc, x| acc + x);
+        print_bandwidth_used(packets_len_sum);
+        packets.truncate(0);
     });
 
     loop {
@@ -108,4 +107,17 @@ fn handle_packet_count(rx: Receiver<usize>) {
         let mut locked_packets = packets.lock().unwrap();
         locked_packets.push(nr);
     }
+}
+
+fn print_bandwidth_used(bytes: usize) {
+    io::stdout().flush().unwrap();
+    print!("\r");
+    let kbs = bytes / 1024;
+    let mbs = bytes / 1024 / 1024;
+    if kbs == 0 {
+        print!("{} Bytes/sec", bytes);
+    } else {
+        print!("{} KB/sec", kbs);
+    }
+    io::stdout().flush().unwrap();
 }
