@@ -2,7 +2,6 @@ Learning rust
 ========
 
 Karan Goel's [project repo](https://github.com/karan/Projects) **+** wanted to learn rust **=** this repo
-
 ## Table of Contents
 
 - [Numbers](https://github.com/andrei-cacio/learning-rust#numbers)
